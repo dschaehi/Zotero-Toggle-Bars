@@ -165,10 +165,26 @@ Toggles = {
   /**
    * Create menu item with associated command and shortcut
    */
-  createMenuItem(doc, { id, l10nId, shortcutKey, callback, requireCtrlCmd = false, f11Special = false }) {
+  createMenuItem(doc, { id, l10nId, shortcutKey, callback, requireCtrlCmd = false, f11Special = false, checkable = false }) {
     const menuItem = doc.createXULElement('menuitem');
     menuItem.id = id;
     menuItem.setAttribute('data-l10n-id', l10nId);
+
+    // Make menu item checkable to show checkmark when active
+    if (checkable) {
+      menuItem.setAttribute('type', 'checkbox');
+      menuItem.setAttribute('checked', String(this.states.focused));
+    }
+
+    // Show keyboard shortcut in the menu item
+    if (shortcutKey) {
+      const isMac = this.getPlatform();
+      if (isMac && requireCtrlCmd) {
+        menuItem.setAttribute('acceltext', '⌃⌘F');
+      } else if (!isMac && f11Special) {
+        menuItem.setAttribute('acceltext', 'F11');
+      }
+    }
 
     // Create a wrapper that logs execution and only runs when document is viewed
     const wrappedCallback = () => {
@@ -268,7 +284,8 @@ Toggles = {
         shortcutKey: this.SHORTCUTS.FOCUSED_MODE,
         callback: focusedModeCombinedCallback,
         requireCtrlCmd: true,
-        f11Special: true
+        f11Special: true,
+        checkable: true
       });
       viewPopup.appendChild(focusedModeCombinedItem);
 
@@ -491,6 +508,9 @@ Toggles = {
       this.states.fullscreen = window.fullScreen;
       this.states.focused = enteringFullscreen;
 
+      // Update menu item checkmark
+      this.updateMenuItemChecked(doc);
+
       // Toggle UI elements
       this.toggleTabBar(doc, enteringFullscreen);
       this.toggleAnnotation(enteringFullscreen);
@@ -609,6 +629,20 @@ Toggles = {
     } catch (e) {
       this.log(`Error in isViewingDocument: ${e.message}`);
       return false;
+    }
+  },
+
+  /**
+   * Update menu item checkmark to reflect focused mode state
+   */
+  updateMenuItemChecked(doc) {
+    try {
+      const menuItem = doc.getElementById('toggle-focused-combined');
+      if (menuItem) {
+        menuItem.setAttribute('checked', String(this.states.focused));
+      }
+    } catch (e) {
+      this.log(`Error updating menu item checked state: ${e.message}`);
     }
   },
 
@@ -786,11 +820,90 @@ Toggles = {
     }
   },
 
+  registeredFullscreenListeners: new Map(),
+
+  /**
+   * Add listener for native fullscreen changes (e.g., macOS green button)
+   * to auto-activate focused mode
+   */
+  addFullscreenListener(window) {
+    try {
+      const handler = () => {
+        const isNowFullscreen = window.fullScreen;
+        this.log(`Native fullscreen change detected: ${isNowFullscreen}`);
+
+        // If entering native fullscreen and focused mode is not already active, activate it
+        if (isNowFullscreen && !this.states.focused) {
+          this.log("Auto-activating focused mode on native fullscreen entry");
+          this.states.fullscreenEnteredByFocusedMode = false;
+          const doc = window.document;
+          // Apply focused mode UI without toggling fullscreen again
+          this.ensureFullscreenCSS(doc);
+          doc.documentElement.classList.add('fullscreen');
+          doc.documentElement.setAttribute('drawintitlebar', true);
+          doc.documentElement.setAttribute('tabsintitlebar', true);
+          doc.documentElement.setAttribute(
+            'chromemargin',
+            Zotero.isMac ? '0,-1,-1,-1' : '0,2,2,2'
+          );
+          this.addMouseListener(doc);
+          this.addRightClickMenuItem(doc);
+          this.states.fullscreen = true;
+          this.states.focused = true;
+          this.toggleTabBar(doc, true);
+          this.toggleAnnotation(true);
+          if (this.hideAnnotationBar) {
+            this.toggleContextPane(true);
+          }
+          this.updateMenuItemChecked(doc);
+          this.log("Focused mode auto-activated on fullscreen");
+        }
+        // If exiting native fullscreen and focused mode is active, deactivate it
+        else if (!isNowFullscreen && this.states.focused) {
+          this.log("Auto-deactivating focused mode on native fullscreen exit");
+          const doc = window.document;
+          doc.documentElement.classList.remove('fullscreen');
+          this.removeMouseListener(doc);
+          this.removeRightClickMenuItem(doc);
+          this.states.fullscreen = false;
+          this.states.focused = false;
+          this.states.fullscreenEnteredByFocusedMode = false;
+          this.toggleTabBar(doc, false);
+          this.toggleAnnotation(false);
+          if (this.hideAnnotationBar) {
+            this.toggleContextPane(false);
+          }
+          this.updateMenuItemChecked(doc);
+          this.log("Focused mode auto-deactivated on fullscreen exit");
+        }
+      };
+
+      window.addEventListener('sizemodechange', handler);
+      this.registeredFullscreenListeners.set(window, handler);
+      this.log("Fullscreen listener registered");
+    } catch (e) {
+      this.log(`Error adding fullscreen listener: ${e.message}`);
+    }
+  },
+
+  removeFullscreenListener(window) {
+    try {
+      const handler = this.registeredFullscreenListeners.get(window);
+      if (handler) {
+        window.removeEventListener('sizemodechange', handler);
+        this.registeredFullscreenListeners.delete(window);
+      }
+    } catch (e) {
+      this.log(`Error removing fullscreen listener: ${e.message}`);
+    }
+  },
+
   addToWindow(window, manualPopup = false) {
     try {
       // Use Fluent for localization
       window.MozXULElement.insertFTLIfNeeded("toggles.ftl");
       this.addMenuItems(window.document, manualPopup);
+      this.addFullscreenListener(window);
     } catch (e) {
       this.log(`Error adding to window: ${e.message}`);
     }
@@ -834,6 +947,9 @@ Toggles = {
   removeFromWindow(window) {
     try {
       const doc = window.document;
+
+      // Remove fullscreen listener
+      this.removeFullscreenListener(window);
 
       // Clear menu update intervals
       if (this.menuUpdateIntervals) {
@@ -1030,15 +1146,19 @@ Toggles = {
       const targetDoc = doc || Zotero.getMainWindow().document;
       if (targetDoc.getElementById('fullscreen-style')) return;
 
+      const isMac = this.getPlatform();
       const style = targetDoc.createElement('style');
       style.id = 'fullscreen-style';
+      // On macOS, do not hide #main-menubar so the system menu bar
+      // remains accessible when the mouse moves to the top of the screen
+      const menubarRule = isMac ? '' : '.fullscreen #main-menubar,';
       style.textContent = `
         .fullscreen { margin: 0; padding: 0; overflow: hidden; }
         .fullscreen #mainPane { width: 100vw; height: 100vh; }
         .fullscreen .zotero-toolbar,
         .fullscreen .zotero-tb-button,
         .fullscreen #zotero-title-bar,
-        .fullscreen #main-menubar,
+        ${menubarRule}
         .fullscreen #titlebar,
         .fullscreen .topbar { display: none !important; }
       `;
