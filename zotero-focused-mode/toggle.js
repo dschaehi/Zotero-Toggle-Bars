@@ -14,6 +14,11 @@ Toggles = {
     contextPaneState: null // Add tracking for context pane state
   },
 
+  // The native title-bar attributes belong to the owning Zotero window. Keep
+  // their exact pre-focused-mode values until native fullscreen has settled.
+  titlebarAttributeSessions: new WeakMap(),
+  TITLEBAR_ATTRIBUTES: ['drawintitlebar', 'tabsintitlebar', 'chromemargin'],
+
   // Constants
   SHORTCUTS: {
     FOCUSED_MODE: {  // Single shortcut for focused mode
@@ -441,6 +446,56 @@ Toggles = {
     }
   },
 
+  captureTitlebarAttributes(window, root) {
+    if (this.titlebarAttributeSessions.has(window)) {
+      return;
+    }
+
+    const attributes = {};
+    for (const name of this.TITLEBAR_ATTRIBUTES) {
+      attributes[name] = {
+        present: root.hasAttribute(name),
+        value: root.getAttribute(name)
+      };
+    }
+    this.titlebarAttributeSessions.set(window, { attributes });
+  },
+
+  restoreTitlebarAttributes(window, root) {
+    const session = this.titlebarAttributeSessions.get(window);
+    if (!session) {
+      return;
+    }
+
+    for (const name of this.TITLEBAR_ATTRIBUTES) {
+      const saved = session.attributes[name];
+      if (saved.present) {
+        root.setAttribute(name, saved.value);
+      } else {
+        root.removeAttribute(name);
+      }
+    }
+    this.titlebarAttributeSessions.delete(window);
+  },
+
+  restoreTitlebarAttributesAfterFullscreenExit(window, root, waitForFullscreenExit) {
+    const restoreAfterFrame = () => {
+      window.requestAnimationFrame(() => this.restoreTitlebarAttributes(window, root));
+    };
+
+    if (!waitForFullscreenExit || !window.fullScreen) {
+      restoreAfterFrame();
+      return;
+    }
+
+    const onFullscreen = () => {
+      if (!window.fullScreen) {
+        restoreAfterFrame();
+      }
+    };
+    window.addEventListener('fullscreen', onFullscreen, { once: true });
+  },
+
   toggleFocusedModeCombined(doc) {
     try {
       if (!doc) {
@@ -460,6 +515,7 @@ Toggles = {
 
       // Apply fullscreen class to root element
       if (enteringFullscreen) {
+        this.captureTitlebarAttributes(window, doc.documentElement);
         doc.documentElement.classList.add('fullscreen');
         doc.documentElement.setAttribute('drawintitlebar', true);
         doc.documentElement.setAttribute('tabsintitlebar', true);
@@ -482,6 +538,12 @@ Toggles = {
           window.fullScreen = true;
         }
       } else {
+        const exitingNativeFullscreen = this.states.fullscreenEnteredByFocusedMode && window.fullScreen;
+        this.restoreTitlebarAttributesAfterFullscreenExit(
+          window,
+          doc.documentElement,
+          exitingNativeFullscreen
+        );
         if (this.states.fullscreenEnteredByFocusedMode && window.fullScreen) {
           window.fullScreen = false;
         }
