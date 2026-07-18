@@ -3,7 +3,7 @@
       "zotero-focused-mode@jaeheelee.de": {
         "updates": [
           {
-            "version": "0.6.2",
+            "version": "0.6.4",
             "update_link": "https://github.com/dschaehi/Zotero-Focused-Mode/releases/latest/download/zotero-focused-mode.xpi",
             "applications": {
               "zotero": {

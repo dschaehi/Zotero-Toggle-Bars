@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Zotero Focused Mode",
-	"version": "0.6.2",
+	"version": "0.6.4",
 	"description": "A plugin that enables a distraction-free workspace for focused reading.",
 	"homepage_url": "https://github.com/dschaehi/Zotero-Focused-Mode/",
 	"icons": {
