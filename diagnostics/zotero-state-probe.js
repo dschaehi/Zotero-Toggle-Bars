@@ -25,23 +25,26 @@
   }
 
   function nodeState(doc, selector) {
-    const node = doc.querySelector(selector);
+    // Zotero's main chrome document is XUL, not HTML. `html` therefore
+    // matches nothing when this probe runs from Tools → Developer → Run
+    // JavaScript. Use this sentinel for the actual document root.
+    const node = selector === ':root' ? doc.documentElement : doc.querySelector(selector);
     if (!node) return null;
-    const computed = doc.defaultView.getComputedStyle(node);
+    const computed = doc.defaultView?.getComputedStyle?.(node);
     return {
       selector,
       attributes: attrs(node),
-      className: node.className || '',
+      className: node.getAttribute('class') || '',
       style: node.getAttribute('style'),
       rect: rect(node),
       computed: {
-        display: computed.display,
-        margin: computed.margin,
-        padding: computed.padding,
-        top: computed.top,
-        left: computed.left,
-        right: computed.right,
-        height: computed.height
+        display: computed?.display || null,
+        margin: computed?.margin || null,
+        padding: computed?.padding || null,
+        top: computed?.top || null,
+        left: computed?.left || null,
+        right: computed?.right || null,
+        height: computed?.height || null
       }
     };
   }
@@ -51,7 +54,7 @@
     if (!doc) return null;
     return {
       id: reader._itemID || reader._id || null,
-      root: nodeState(doc, 'html'),
+      root: nodeState(doc, ':root'),
       toolbar: nodeState(doc, '.toolbar'),
       sidebar: nodeState(doc, '#sidebarContainer'),
       splitView: nodeState(doc, '#split-view'),
@@ -70,7 +73,10 @@
 
   function capture(phase, win = Zotero.getMainWindow()) {
     const doc = win.document;
-    const toggles = typeof Toggles === 'undefined' ? null : Toggles;
+    // `Toggles` is normally global to the bootstrap script, rather than the
+    // developer-runner global. Check the target window first and retain a
+    // null value when the runtime does not expose it.
+    const toggles = win.Toggles || globalThis.Toggles || null;
     const snapshot = {
       phase,
       capturedAt: new Date().toISOString(),
@@ -85,7 +91,12 @@
         outerHeight: win.outerHeight,
         innerWidth: win.innerWidth,
         innerHeight: win.innerHeight,
-        documentElement: nodeState(doc, 'html'),
+        documentElement: nodeState(doc, ':root'),
+        chrome: {
+          drawintitlebar: doc.documentElement.getAttribute('drawintitlebar'),
+          tabsintitlebar: doc.documentElement.getAttribute('tabsintitlebar'),
+          chromemargin: doc.documentElement.getAttribute('chromemargin')
+        },
         mainWindow: nodeState(doc, '#main-window'),
         titleBar: nodeState(doc, '#zotero-title-bar'),
         nativeTitleBar: nodeState(doc, '#titlebar'),

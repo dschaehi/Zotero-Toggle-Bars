@@ -128,3 +128,8 @@ pixel displacement in same-rectangle title-bar screenshots.
   display capture and accessibility inspection, so the add-on could not be
   enabled through its own UI and no mode toggle, screenshot, or runtime JSON
   was fabricated.
+
+The later runtime pass, after Computer Use became available, is recorded in
+[`runtime-evidence.md`](runtime-evidence.md). It enabled the same XPI through
+Plugins Manager and contains the actual GUI state captures, title-bar images,
+and temporary-console intervention results.

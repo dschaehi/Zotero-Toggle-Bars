@@ -1,0 +1,161 @@
+{
+  "phase": "maximized-library-after-entry-settled",
+  "capturedAt": "2026-07-18T13:20:39.078Z",
+  "zoteroVersion": "9.0.6",
+  "platform": "Darwin",
+  "selectedTab": null,
+  "window": {
+    "fullScreen": true,
+    "screenX": 0,
+    "screenY": 0,
+    "outerWidth": 1920,
+    "outerHeight": 1080,
+    "root": {
+      "attributes": {
+        "id": "main-window",
+        "xmlns": "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
+        "windowtype": "navigator:browser",
+        "title": "My Library - Zotero",
+        "width": "1000",
+        "height": "600",
+        "persist": "screenX screenY width height sizemode",
+        "xmlns:html": "http://www.w3.org/1999/xhtml",
+        "style": "display: flex; --width-of-fixed-components: 557px; --height-of-fixed-components: 0px;",
+        "tooltip": "html-tooltip",
+        "customtitlebar": "true",
+        "lang": "en-US",
+        "localedir": "ltr",
+        "chromehidden": "",
+        "macos-tahoe": "true",
+        "screenX": "0",
+        "screenY": "30",
+        "sizemode": "fullscreen",
+        "gtktiledwindow": "false",
+        "class": "fullscreen",
+        "drawintitlebar": "true",
+        "tabsintitlebar": "true",
+        "chromemargin": "0,-1,-1,-1"
+      },
+      "style": "display: flex; --width-of-fixed-components: 557px; --height-of-fixed-components: 0px;",
+      "className": "fullscreen",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080,
+        "top": 0,
+        "left": 0,
+        "bottom": 1080,
+        "right": 1920
+      }
+    },
+    "chrome": {
+      "drawintitlebar": "true",
+      "tabsintitlebar": "true",
+      "chromemargin": "0,-1,-1,-1"
+    },
+    "titleBar": {
+      "attributes": {
+        "id": "zotero-title-bar",
+        "style": "display: none;"
+      },
+      "style": "display: none;",
+      "className": null,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "left": 0,
+        "bottom": 0,
+        "right": 0
+      }
+    },
+    "nativeTitleBar": {
+      "attributes": {
+        "id": "titlebar"
+      },
+      "style": null,
+      "className": null,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "left": 0,
+        "bottom": 0,
+        "right": 0
+      }
+    },
+    "browser": {
+      "attributes": {
+        "flex": "1",
+        "id": "browser"
+      },
+      "style": null,
+      "className": null,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080,
+        "top": 0,
+        "left": 0,
+        "bottom": 1080,
+        "right": 1920
+      }
+    },
+    "contextSplitter": {
+      "attributes": {
+        "id": "zotero-context-splitter",
+        "hidden": "true",
+        "state": "collapsed",
+        "resizebefore": "closest",
+        "resizeafter": "closest",
+        "collapse": "after",
+        "orient": "horizontal",
+        "zotero-persist": "state",
+        "onmousemove": "ZoteroContextPane.update()",
+        "oncommand": "ZoteroContextPane.update()",
+        "data-prev-state": "collapsed"
+      },
+      "style": null,
+      "className": null,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "left": 0,
+        "bottom": 0,
+        "right": 0
+      }
+    },
+    "fullscreenStyle": {
+      "attributes": {
+        "id": "fullscreen-style"
+      },
+      "style": null,
+      "className": null,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "left": 0,
+        "bottom": 0,
+        "right": 0
+      }
+    }
+  },
+  "preferences": {
+    "contextPaneState": "collapsed",
+    "hideAnnotationBar": true,
+    "disableHoverReveal": false
+  },
+  "pluginWindowState": null
+}
