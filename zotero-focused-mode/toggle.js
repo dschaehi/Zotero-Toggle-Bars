@@ -999,7 +999,7 @@ Toggles = {
           // Method 4: Broader mutation observer for tab changes
           const mainWindow = win.document.getElementById("main-window");
           if (mainWindow) {
-            this.tabObserver = new MutationObserver((mutations) => {
+            this.tabObserver = new win.MutationObserver((mutations) => {
               for (const mutation of mutations) {
                 // Look for relevant changes to detect tab switching
                 if (mutation.type === 'attributes' &&
