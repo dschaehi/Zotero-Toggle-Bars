@@ -353,7 +353,8 @@ Toggles = {
             [data-hide-annotation-bar="true"] .toolbar      { display: none !important; }
             [data-hide-annotation-bar="true"] .view-popup   { margin-top: -40px !important; }
             [data-hide-annotation-bar="true"] #sidebarContainer { display: none !important; }
-            [data-hide-annotation-bar="true"] #split-view      { top: 0 !important; left: 0 !important; right: 0 !important; }
+            [data-hide-annotation-bar="true"] #split-view,
+            [data-hide-annotation-bar="true"] .split-view     { top: 0 !important; left: 0 !important; right: 0 !important; }
             [data-hide-annotation-bar="true"] #viewerContainer { top: 0 !important; }
           `;
         } else if (style) {
